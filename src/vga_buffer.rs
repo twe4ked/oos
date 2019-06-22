@@ -3,8 +3,6 @@ use spin::Mutex;
 
 lazy_static! {
     pub static ref WRITER: Mutex<Writer> = Mutex::new(Writer {
-        column_position: 0,
-        color_code: ColorCode::new(Color::Yellow, Color::Black),
         buffer: unsafe { &mut *(VGA_BUFFER as *mut Buffer) },
     });
 }
@@ -61,45 +59,21 @@ struct Buffer {
 }
 
 pub struct Writer {
-    column_position: usize,
-    color_code: ColorCode,
     buffer: &'static mut Buffer,
 }
 
 impl Writer {
-    pub fn write_byte(&mut self, byte: u8) {
-        match byte {
-            b'\n' => self.new_line(),
-            byte => {
-                if self.column_position >= BUFFER_WIDTH {
-                    self.new_line();
-                }
-
-                let row = BUFFER_HEIGHT - 1;
-                let col = self.column_position;
-
-                let color_code = self.color_code;
-                self.buffer.chars[row][col].write(ScreenChar {
-                    ascii_character: byte,
-                    color_code,
-                });
-                self.column_position += 1;
-            }
-        }
-    }
-
-    pub fn write_str(&mut self, s: &str) {
-        for byte in s.bytes() {
-            match byte {
-                // Printable ASCII byte or newline
-                0x20..=0x7e | b'\n' => self.write_byte(byte),
-                // Not part of printable ASCII range
-                _ => self.write_byte(0xfe),
-            }
-        }
-    }
-
-    fn new_line(&mut self) {
-        unimplemented!()
+    pub fn write_char(
+        &mut self,
+        byte: u8,
+        x: usize,
+        y: usize,
+        foreground_color: Color,
+        background_color: Color,
+    ) {
+        self.buffer.chars[y][x].write(ScreenChar {
+            ascii_character: byte,
+            color_code: ColorCode::new(foreground_color, background_color),
+        });
     }
 }
