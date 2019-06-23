@@ -67,7 +67,7 @@ fn panic(panic_info: &PanicInfo) -> ! {
     for (i, b) in bytes {
         vga_buffer::WRITER
             .lock()
-            .write_char(*b, i, 0, Color::Black, Color::Yellow);
+            .write_char(*b, i, BUFFER_HEIGHT - 1, Color::Black, Color::Yellow);
     }
     loop {}
 }
