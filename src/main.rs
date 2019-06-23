@@ -47,6 +47,17 @@ pub extern "C" fn _start() -> ! {
 
 /// This function is called on panic.
 #[panic_handler]
-fn panic(_info: &PanicInfo) -> ! {
+fn panic(panic_info: &PanicInfo) -> ! {
+    let message = if let Some(s) = panic_info.payload().downcast_ref::<&str>() {
+        s
+    } else {
+        "panic [no message]"
+    };
+    let bytes = message.as_bytes().iter().enumerate();
+    for (i, b) in bytes {
+        vga_buffer::WRITER
+            .lock()
+            .write_char(*b, i, 0, Color::Black, Color::Yellow);
+    }
     loop {}
 }
