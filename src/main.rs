@@ -5,13 +5,14 @@ mod game_of_life;
 mod vga_buffer;
 
 use core::panic::PanicInfo;
+use game_of_life::{WORLD_HEIGHT, WORLD_WIDTH};
 use vga_buffer::{Color, BUFFER_HEIGHT, BUFFER_WIDTH};
 
 #[no_mangle]
 /// This function is the entry point, since the linker looks for a function
 /// named `_start` by default.
 pub extern "C" fn _start() -> ! {
-    let mut cells = [[false; BUFFER_WIDTH]; BUFFER_HEIGHT];
+    let mut cells = [[false; WORLD_WIDTH]; WORLD_HEIGHT];
 
     // Glider:
     //
@@ -28,8 +29,14 @@ pub extern "C" fn _start() -> ! {
 
     loop {
         for y in 0..BUFFER_HEIGHT {
+            let mut i = 0;
             for x in 0..BUFFER_WIDTH {
-                let color = if cells[y][x] {
+                if x % 2 != 0 {
+                    i += 1;
+                    continue;
+                }
+
+                let color = if cells[y][i] {
                     Color::LightCyan
                 } else {
                     Color::Black
@@ -38,6 +45,9 @@ pub extern "C" fn _start() -> ! {
                 vga_buffer::WRITER
                     .lock()
                     .write_char(' ' as u8, x, y, color, color);
+                vga_buffer::WRITER
+                    .lock()
+                    .write_char(' ' as u8, x + 1, y, color, color);
             }
         }
 

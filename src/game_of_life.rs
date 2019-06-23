@@ -1,6 +1,9 @@
 use crate::vga_buffer::{BUFFER_HEIGHT, BUFFER_WIDTH};
 
-type Cells = [[bool; BUFFER_WIDTH]; BUFFER_HEIGHT];
+pub const WORLD_WIDTH: usize = BUFFER_WIDTH / 2;
+pub const WORLD_HEIGHT: usize = BUFFER_HEIGHT;
+
+type Cells = [[bool; WORLD_WIDTH]; WORLD_HEIGHT];
 
 #[rustfmt::skip]
 const OFFSETS: [(i8, i8); 8] = [
@@ -12,14 +15,14 @@ const OFFSETS: [(i8, i8); 8] = [
 pub fn simulate(mut cells: Cells) -> Cells {
     let old_cells = cells.clone();
 
-    for y in 0..BUFFER_HEIGHT {
-        for x in 0..BUFFER_WIDTH {
+    for y in 0..WORLD_HEIGHT {
+        for x in 0..WORLD_WIDTH {
             let cell = old_cells[y][x];
 
             let mut neighbors = 0;
             for (x_offset, y_offset) in &OFFSETS {
-                let x = add_offset(BUFFER_WIDTH - 1, x, *x_offset);
-                let y = add_offset(BUFFER_HEIGHT - 1, y, *y_offset);
+                let x = add_offset(WORLD_WIDTH - 1, x, *x_offset);
+                let y = add_offset(WORLD_HEIGHT - 1, y, *y_offset);
 
                 if old_cells[y][x] {
                     neighbors += 1;
