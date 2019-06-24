@@ -1,3 +1,4 @@
+use core::fmt;
 use lazy_static::lazy_static;
 use spin::Mutex;
 use volatile::Volatile;
@@ -74,4 +75,25 @@ impl Writer {
             color_code: ColorCode::new(foreground_color, background_color),
         });
     }
+}
+
+impl fmt::Write for Writer {
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        for (i, b) in s.as_bytes().iter().enumerate() {
+            self.write_char(*b, i, BUFFER_HEIGHT - 1, Color::Black, Color::Yellow);
+        }
+
+        Ok(())
+    }
+}
+
+#[macro_export]
+macro_rules! print {
+    ($($arg:tt)*) => ($crate::vga_buffer::_print(format_args!($($arg)*)));
+}
+
+#[doc(hidden)]
+pub fn _print(args: fmt::Arguments) {
+    use core::fmt::Write;
+    WRITER.lock().write_fmt(args).unwrap();
 }
