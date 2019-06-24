@@ -1,7 +1,7 @@
-use crate::vga_buffer::{BUFFER_HEIGHT, BUFFER_WIDTH};
+use crate::vga_buffer::{Color, BUFFER_HEIGHT, BUFFER_WIDTH, WRITER};
 
-pub const WORLD_WIDTH: usize = BUFFER_WIDTH / 2;
-pub const WORLD_HEIGHT: usize = BUFFER_HEIGHT;
+const WORLD_WIDTH: usize = BUFFER_WIDTH / 2;
+const WORLD_HEIGHT: usize = BUFFER_HEIGHT;
 
 type Cells = [[bool; WORLD_WIDTH]; WORLD_HEIGHT];
 
@@ -12,7 +12,29 @@ const OFFSETS: [(i8, i8); 8] = [
     ( 1, -1), ( 1, 0), ( 1, 1),
 ];
 
-pub fn simulate(mut cells: Cells) -> Cells {
+pub fn run() -> ! {
+    let mut cells = [[false; WORLD_WIDTH]; WORLD_HEIGHT];
+
+    // Glider:
+    //
+    // - 0 1 2 3
+    // 0 - - # -
+    // 1 # - # -
+    // 2 - # # -
+    // 3 - - - -
+    cells[0][2] = true;
+    cells[1][0] = true;
+    cells[1][2] = true;
+    cells[2][1] = true;
+    cells[2][2] = true;
+
+    loop {
+        draw(&cells);
+        cells = simulate(cells);
+    }
+}
+
+fn simulate(mut cells: Cells) -> Cells {
     let old_cells = cells.clone();
 
     for y in 0..WORLD_HEIGHT {
@@ -47,5 +69,26 @@ fn add_offset(max: usize, n: usize, offset: i8) -> usize {
         r if r > max as isize => min,
         r if r < min as isize => max,
         r => r as usize,
+    }
+}
+
+fn draw(cells: &Cells) {
+    for y in 0..BUFFER_HEIGHT {
+        let mut i = 0;
+        for x in 0..BUFFER_WIDTH {
+            if x % 2 != 0 {
+                i += 1;
+                continue;
+            }
+
+            let color = if cells[y][i] {
+                Color::LightCyan
+            } else {
+                Color::Black
+            };
+
+            WRITER.lock().write_char(' ' as u8, x, y, color, color);
+            WRITER.lock().write_char(' ' as u8, x + 1, y, color, color);
+        }
     }
 }
