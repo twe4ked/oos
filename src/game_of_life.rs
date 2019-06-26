@@ -15,18 +15,33 @@ const OFFSETS: [(i8, i8); 8] = [
 pub fn run() -> ! {
     let mut cells = [[false; WORLD_WIDTH]; WORLD_HEIGHT];
 
-    // Glider:
-    //
-    // - 0 1 2 3
-    // 0 - - # -
-    // 1 # - # -
-    // 2 - # # -
-    // 3 - - - -
-    cells[0][2] = true;
-    cells[1][0] = true;
-    cells[1][2] = true;
-    cells[2][1] = true;
-    cells[2][2] = true;
+    #[cfg(feature = "glider")]
+    {
+        // Glider:
+        //
+        // - 0 1 2 3
+        // 0 - - # -
+        // 1 # - # -
+        // 2 - # # -
+        // 3 - - - -
+        cells[0][2] = true;
+        cells[1][0] = true;
+        cells[1][2] = true;
+        cells[2][1] = true;
+        cells[2][2] = true;
+    }
+
+    #[cfg(feature = "rand")]
+    {
+        use msws::Rand;
+        let seed = 0xb5ad4eceda1ce2a9;
+        let mut r = Rand::new(seed).expect("invalid seed");
+        for y in 0..WORLD_HEIGHT {
+            for x in 0..WORLD_WIDTH {
+                cells[y][x] = r.rand() & 1 == 0;
+            }
+        }
+    }
 
     loop {
         draw(&cells);
